@@ -1,0 +1,156 @@
+// ### Simple Tic-Tac-Toe game written in C++ ###
+#include <iostream>
+#include <chrono>
+#include <thread>
+#include <cstdlib>
+#include <ctime>
+using namespace std;
+// Macros
+#define cls (cout << "\033[2J\033[;H")
+#define wait(ms) (this_thread::sleep_for(chrono::milliseconds(ms)))
+// Global variables
+char grid[9], winner;
+// Intro animation
+void intro() {
+    cout << "Starting Tic-Tac-Toe game." << endl;
+    wait(500);
+    cls;
+    cout << "Starting Tic-Tac-Toe game.." << endl;
+    wait(500);
+    cls;
+    cout << "Starting Tic-Tac-Toe game..." << endl;
+    wait(500);
+    cout << "Welcome to Terminal Tic-Tac-Toe!" << endl;
+    wait(500);
+    cls;
+}
+// Prints the board. Empty cells show their number (1-9), taken cells show X or O.
+void printGrid() {
+    cout << "\n " << string(13, '-') << '\n';
+    for (int i = 0; i <= 8; i++) {
+        if (grid[i]) cout << " | " << grid[i];
+        else cout << " | " << (i + 1);
+        if (i == 2 || i == 5 || i == 8) cout << " |\n " << string(13, '-') << '\n';
+    }
+    cout << '\n';
+}
+// Checks for a winner or draw. Sets winner and returns true if the game is over.
+bool checkGameOver() {
+    winner = 0;
+    // Check rows
+    for (int i = 0; i <= 6; i += 3) {
+        if (grid[i] && grid[i] == grid[i+1] && grid[i] == grid[i+2]) {
+            winner = grid[i];
+            return true;
+        }
+    }
+    // Check columns
+    for (int i = 0; i <= 2; i++) {
+        if (grid[i] && grid[i] == grid[i+3] && grid[i] == grid[i+6]) {
+            winner = grid[i];
+            return true;
+        }
+    }
+    // Check diagonals
+    if (grid[4] && ((grid[4] == grid[0] && grid[4] == grid[8]) || (grid[4] == grid[2] && grid[4] == grid[6]))) {
+        winner = grid[4];
+        return true;
+    }
+    // Draw: board is full and no winner
+    for (int i = 0; i <= 8; i++) if (!grid[i]) return false;
+    return true;
+}
+// AI: tries to win, blocks the human, or plays a random empty cell.
+void play(char ai) {
+    char human = (ai == 'O' ? 'X' : 'O');
+    // 1. Try winning move
+    for (int i = 0; i <= 8; i++) {
+        if (!grid[i]) {
+            grid[i] = ai;
+            if (checkGameOver() && winner) {
+                wait(500);
+                cout << i + 1 << flush;
+                wait(1000);
+                return;
+            }
+            grid[i] = 0;
+        }
+    }
+    // 2. Block human
+    for (int i = 0; i <= 8; i++) {
+        if (!grid[i]) {
+            grid[i] = human;
+            if (checkGameOver() && winner) {
+                grid[i] = ai;
+                wait(500);
+                cout << i + 1 << flush;
+                wait(1000);
+                return;
+            }
+            grid[i] = 0;
+        }
+    }
+    // 3. Otherwise random
+    int num;
+    do num = rand() % 9; while (grid[num]);
+    grid[num] = ai;
+    wait(500);
+    cout << num + 1 << flush;
+    wait(1000);
+}
+int main() {
+    intro();
+    
+    string input;
+    srand(time(0));
+    
+    while (true) {
+        bool solo = true, startFirst = true;
+        cout << "Play solo? [Y/n] ";
+        getline(cin, input);
+        if (input == "n" || input == "N") solo = false;
+        else {
+            cout << "Start first? [Y/n] ";
+            getline(cin, input);
+            if (input == "n" || input == "N") startFirst = false;
+        }
+        
+        // i tracks turns: even = X, odd = O
+        for (int i = 0; !checkGameOver(); i++) {
+            cls;
+            printGrid();
+            
+            char player = (i % 2 == 0) ? 'X' : 'O';
+            cout << player << "'s turn: " << flush;
+            
+            if (solo && player == (startFirst ? 'O' : 'X')) play(player);
+            else {
+                int position;
+                if (!(cin >> position) || position > 9 || position < 1 || grid[position-1]) {
+                    cout << "Invalid input. Try again.";
+                    cin.clear();
+                    cin.ignore(100, '\n');
+                    wait(1000);
+                    i--;
+                } else {
+                    grid[position-1] = player;
+                    cin.ignore(100, '\n');
+                }
+            }
+        }
+        cls;
+        printGrid();
+        winner ? cout << winner << " won the game!" << flush : cout << "It's a draw!" << flush;
+        wait(1000);
+        cout << " Play again? [Y/n] ";
+        getline(cin, input);
+        if (input == "n" || input == "N") break;
+        
+        // Reset for next game
+        for (char &c : grid) c = 0;
+        cls;
+    }
+    
+    cout << "Goodbye.";
+    return 0;
+}
