@@ -80,7 +80,7 @@ void play(char ai) {
         if (!grid[i]) {
             grid[i] = ai;
             if (checkGameOver() && winner) {
-                wait(500);
+                wait(250);
                 cout << i + 1 << flush;
                 wait(1000);
                 return;
@@ -95,7 +95,7 @@ void play(char ai) {
             grid[i] = human;
             if (checkGameOver() && winner) {
                 grid[i] = ai;
-                wait(500);
+                wait(250);
                 cout << i + 1 << flush;
                 wait(1000);
                 return;
@@ -108,7 +108,7 @@ void play(char ai) {
     int num;
     do num = rand() % 9; while (grid[num]);
     grid[num] = ai;
-    wait(500);
+    wait(250);
     cout << num + 1 << flush;
     wait(1000);
 }
