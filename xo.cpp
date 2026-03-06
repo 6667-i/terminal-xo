@@ -27,17 +27,17 @@ bool solo, startFirst;
 // ---------- functions --------------------------------------------------------
 
 void init() {
-    // seed rng and disable output buffering
+    // clear screen, seed rng, and disable output buffering
+    cls;
     srand(chrono::steady_clock::now().time_since_epoch().count());
     cout << unitbuf;
 }
 
 void intro() {
     // play startup sequence
-    cls;
-    cout << "starting";
+    cout << "Starting";
     dots;
-    cout << "\nwelcome to terminal XO.";
+    cout << "\nWelcome to terminal XO.";
     wait(1000);
     cls;
 }
@@ -47,16 +47,17 @@ void setup() {
     solo = true; startFirst = true;
     string input;
 
-    cout << "play solo? [Y/n] ";
+    cout << "Play solo? [Y/n] ";
     getline(cin, input);
     if (input == "n" || input == "N") {
         solo = false;
-        return;
+    } else {
+        cout << "Start first? [Y/n] ";
+        getline(cin, input);
+        if (input == "n" || input == "N") startFirst = false;
     }
 
-    cout << "start first? [Y/n] ";
-    getline(cin, input);
-    if (input == "n" || input == "N") startFirst = false;
+    cls;
 }
 
 void printGrid() {
@@ -116,7 +117,7 @@ bool humanMove(char player) {
     // read and validate input
     int position;
     if (!(cin >> position) || position > 9 || position < 1 || grid[position - 1]) {
-        cout << yellow << "invalid input, try again." << reset;
+        cout << yellow << "Invalid input, try again." << reset;
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
         wait(1000);
@@ -171,32 +172,28 @@ void aiMove(char ai) {
     wait(500);
 }
 
-void printResult() {
+bool gameEnd() {
     // display winner or draw message at the end of a round
-    cls;
     printGrid();
-    winner ? cout << (winner == 'X' ? red : blue) << winner << reset " won the game. " : cout << "it's a " purple "draw" reset ". ";
+    winner ? cout << (winner == 'X' ? red : blue) << winner << reset " won the game. " : cout << "It's a " purple "draw" reset ". ";
     wait(1000);
-}
 
-bool playAgain() {
     // prompt user to continue playing
     string input;
-    cout << "play again? [Y/n] ";
+    cout << "Play again? [Y/n] ";
     getline(cin, input);
-    return !(input == "n" || input == "N");
+    cls;
+    return (input == "n" || input == "N");
 }
 
 void resetGame() {
     // clear grid for the next round
     for (char &c : grid) c = 0;
-    cls;
 }
 
 void goodbye() {
     // play shutdown sequence
-    cls;
-    cout << "goodbye.";
+    cout << "Goodbye.";
     wait(1000);
     cls;
 }
@@ -212,26 +209,25 @@ int main() {
 
         // main game loop
         for (int i = 0; !checkGameOver(); i++) {
-            cls;
             printGrid();
 
-            // determine current player based on turn number
+            // determine current player
             char player = (i % 2 == 0 ? 'X' : 'O');
             cout << (player == 'X' ? red : blue) << player << reset;
 
-            // ai turn
+            // determine who plays (ai or human?)
             if (solo && player == (startFirst ? 'O' : 'X')) {
                 cout << "'s turn. [AI] ";
                 aiMove(player);
-            // human turn
             } else {
                 cout << "'s turn. [1-9] ";
                 if (!humanMove(player)) i--;
             }
+
+            cls;
         }
 
-        printResult();
-        if (!playAgain()) break;
+        if (gameEnd()) break;
         resetGame();
     } while (true);
 
