@@ -21,7 +21,7 @@ using namespace std;
 // ---------- globals ----------------------------------------------------------
 
 char human, first, second, grid[9], winner;
-int players, scoreX, scoreO, draws, winLine[3] = {-1, -1, -1};
+int mode, scoreX, scoreO, draws, winCells[3] = {-1, -1, -1};
 
 // ---------- functions --------------------------------------------------------
 
@@ -44,7 +44,7 @@ void intro() {
 void setup() {
     // ask to change initial configuration
     string input;
-    if (players) {
+    if (mode) {
         cout << "Change settings? [y/N] ";
         getline(cin, input);
         cls;
@@ -59,7 +59,7 @@ void setup() {
     else {
         cout << yellow << "Invalid input, try again." << reset;
         wait(1000);
-        players = 0;
+        mode = 0;
         cls;
         setup();
         return;
@@ -72,7 +72,7 @@ void setup() {
 
     cout << "Play against AI? [Y/n] ";
     getline(cin, input);
-    players = ((input == "n" || input == "N") ? 2 : 1);
+    mode = ((input == "n" || input == "N") ? 2 : 1);
 
     cls;
 }
@@ -82,7 +82,7 @@ void printState() {
     cout << "\n " << string(13, '-') << '\n';
     for (int i = 0; i < 9; i++) {
         // highlight winning cells in yellow, x in red, o in blue
-        bool isWinCell = (i == winLine[0] || i == winLine[1] || i == winLine[2]);
+        bool isWinCell = (i == winCells[0] || i == winCells[1] || i == winCells[2]);
         grid[i] ? cout << " | " << (isWinCell ? yellow : (grid[i] == 'X' ? red : blue)) << grid[i] << reset : cout << " | " << (i + 1);
         if (i % 3 == 2) cout << " |\n " << string(13, '-') << '\n';
     }
@@ -91,12 +91,12 @@ void printState() {
     cout << "\n " << red << "X: " << scoreX << reset << "  |  " << purple << "Draws: " << draws << reset << "  |  " << blue << "O: " << scoreO << reset << "\n\n";
 }
 
-bool gameOver() {
+bool checkState() {
     // check rows
     for (int i = 0; i < 7; i += 3) {
         if (grid[i] && grid[i] == grid[i + 1] && grid[i] == grid[i + 2]) {
             winner = grid[i];
-            winLine[0] = i; winLine[1] = i + 1; winLine[2] = i + 2;
+            winCells[0] = i; winCells[1] = i + 1; winCells[2] = i + 2;
             return true;
         }
     }
@@ -105,7 +105,7 @@ bool gameOver() {
     for (int i = 0; i < 3; i++) {
         if (grid[i] && grid[i] == grid[i + 3] && grid[i] == grid[i + 6]) {
             winner = grid[i];
-            winLine[0] = i; winLine[1] = i + 3; winLine[2] = i + 6;
+            winCells[0] = i; winCells[1] = i + 3; winCells[2] = i + 6;
             return true;
         }
     }
@@ -114,19 +114,19 @@ bool gameOver() {
     if (grid[4]) {
         if (grid[4] == grid[0] && grid[4] == grid[8]) {
             winner = grid[4];
-            winLine[0] = 0; winLine[1] = 4; winLine[2] = 8;
+            winCells[0] = 0; winCells[1] = 4; winCells[2] = 8;
             return true;
         }
         if (grid[4] == grid[2] && grid[4] == grid[6]) {
             winner = grid[4];
-            winLine[0] = 2; winLine[1] = 4; winLine[2] = 6;
+            winCells[0] = 2; winCells[1] = 4; winCells[2] = 6;
             return true;
         }
     }
 
-    // otherwise reset win variables and check for draw
+    // otherwise reset win state and check for draw
     winner = 0;
-    for (int &x : winLine) x = -1;
+    for (int &x : winCells) x = -1;
     for (char x : grid) if (!x) return false;
     return true;
 }
@@ -139,7 +139,7 @@ bool humanMove(char player) {
     int position;
     bool valid = (cin >> position) && position >= 1 && position <= 9 && !grid[position - 1];
     cin.clear();
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    cin.ignore(1e9, '\n');
     if (!valid) {
         cout << yellow << "Invalid input, try again." << reset;
         wait(1000);
@@ -160,7 +160,7 @@ void aiMove(char player) {
     for (int i = 0; i < 9; i++) {
         if (!grid[i]) {
             grid[i] = player;
-            if (gameOver() && winner) return;
+            if (checkState() && winner) return;
             grid[i] = 0;
         }
     }
@@ -169,7 +169,7 @@ void aiMove(char player) {
     for (int i = 0; i < 9; i++) {
         if (!grid[i]) {
             grid[i] = human;
-            if (gameOver() && winner) {
+            if (checkState() && winner) {
                 grid[i] = player;
                 return;
             }
@@ -183,7 +183,7 @@ void aiMove(char player) {
     grid[num] = player;
 }
 
-bool endRound() {
+bool gameOver() {
     // update scores
     if (winner == 'X') scoreX++;
     else if (winner == 'O') scoreO++;
@@ -210,19 +210,19 @@ void loop() {
     do {
         setup();
 
-        for (int i = 0; !gameOver(); i++) {
+        for (int i = 0; !checkState(); i++) {
             printState();
 
             // determine current player
             char player = (i % 2 == 0 ? first : second);
 
             // determine who plays (ai or human)
-            if (players == 1 && player != human) aiMove(player);
+            if (mode == 1 && player != human) aiMove(player);
             else if (!humanMove(player)) i--;
 
             cls;
         }
-    } while (!endRound());
+    } while (!gameOver());
 }
 
 void goodbye() {
