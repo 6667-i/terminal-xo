@@ -1,13 +1,13 @@
 // ### terminal xo ###
 
-// ---------- libraries --------------------------------------------------------
+// ────────── libraries ────────────────────────────────────────────────────────
 
 #include <iostream>
 #include <chrono>
 #include <thread>
 using namespace std;
 
-// ---------- macros -----------------------------------------------------------
+// ────────── macros ───────────────────────────────────────────────────────────
 
 #define wait(ms) this_thread::sleep_for(chrono::milliseconds(ms))
 #define cls cout << "\e[2J\e[H"
@@ -19,12 +19,12 @@ using namespace std;
 #define yellow "\e[93m"
 #define reset "\e[m"
 
-// ---------- globals ----------------------------------------------------------
+// ────────── globals ──────────────────────────────────────────────────────────
 
 char human, first, second, grid[9], winner;
 int mode, scorex, scoreo, draws, wincells[3] = {-1, -1, -1};
 
-// ---------- functions --------------------------------------------------------
+// ────────── functions ────────────────────────────────────────────────────────
 
 void startup() {
     // initialize program and play startup sequence
@@ -238,7 +238,7 @@ void shutdown() {
     showcur;
 }
 
-// ---------- main -------------------------------------------------------------
+// ────────── main ─────────────────────────────────────────────────────────────
 
 int main() {
     startup();
