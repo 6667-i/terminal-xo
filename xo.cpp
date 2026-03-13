@@ -28,9 +28,9 @@ int mode, scorex, scoreo, draws, wincells[3] = {-1, -1, -1};
 
 void startup() {
     // initialize program and play startup sequence
+    srand(chrono::steady_clock::now().time_since_epoch().count());
     cls;
     hidecur;
-    srand(chrono::steady_clock::now().time_since_epoch().count());
     cout << unitbuf << "Loading";
     for (int i = 0; i < 3; i++, wait(500)) cout << '.';
     cout << "\nWelcome to terminal XO.";
@@ -64,12 +64,10 @@ void setup() {
         setup();
         return;
     }
-    
     cout << "Start first? [Y/n] ";
     getline(cin, input);
     first = ((input == "n" || input == "N") ? (human == 'X' ? 'O' : 'X') : human);
     second = (first == 'X' ? 'O' : 'X');
-    
     cout << "Play against AI? [Y/n] ";
     getline(cin, input);
     mode = ((input == "n" || input == "N") ? 2 : 1);
@@ -142,6 +140,7 @@ bool checkstate() {
 }
 
 void humanmove(char player) {
+    // print player's turn
     cout << (player == 'X' ? red : blue) << player << reset << "'s turn. [1-9] ";
     
     // read and validate input
@@ -163,17 +162,21 @@ void humanmove(char player) {
 }
 
 void aimove(char player) {
+    // print ai's turn
     cout << (player == 'X' ? red : blue) << player << reset << "'s turn. [AI] ";
     for (int i = 0; i < 3; i++, wait(500)) cout << '.';
     
+    // 1. win if possible
     for (int i = 0; i < 9; i++) {
-        // 1. win if possible
         if (!grid[i]) {
             grid[i] = player;
             if (checkstate() && winner) return;
             grid[i] = 0;
         }
-        // 2. block human if they can win
+    }
+    
+    // 2. block human if they can win
+    for (int i = 0; i < 9; i++) {
         if (!grid[i]) {
             grid[i] = human;
             if (checkstate() && winner) {
@@ -220,9 +223,9 @@ void loop() {
     do {
         setup();
         
+        // display state and take determine player
         for (int i = 0; !checkstate(); i++) {
             printstate();
-            // determine who plays
             char player = (i % 2 == 0 ? first : second);
             (mode == 1 && player != human) ? aimove(player) : humanmove(player);
             cls;
